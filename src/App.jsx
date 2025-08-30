@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import "./App.css"; // keep your toolbar/glass styles
+import "./App.css";
 
-// bring in ALL service fns used across both versions
 import {
   getAllMovies,
   getMoviesSorted,
@@ -22,12 +21,11 @@ export default function App() {
   const [genre, setGenre] = useState("");
   const [search, setSearch] = useState("");
 
-  // extra state
   const [historyOpen, setHistoryOpen] = useState(false);
   const [recent, setRecent] = useState([]);
   const [recs, setRecs] = useState([]);
   const [recsOpen, setRecsOpen] = useState(false);
-  const [adding, setAdding] = useState(false); // <-- for Add Movie
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     loadMovies();
@@ -75,7 +73,7 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Sticky toolbar */}
+      {/* Toolbar */}
       <div className="toolbar">
         <div className="toolbar-inner">
           <h1>🎬 Movie Explorer</h1>
@@ -87,19 +85,17 @@ export default function App() {
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            {/* Sort / Filter */}
             <button onClick={() => handleSort("rating")}>Sort by Rating</button>
             <button onClick={() => handleSort("year")}>Sort by Year</button>
             <button onClick={() => handleFilter("Action")}>Filter: Action</button>
             <button onClick={() => handleFilter("Drama")}>Filter: Drama</button>
             <button onClick={loadMovies}>Reset</button>
 
-            {/* Extra actions */}
             <button onClick={async () => setMovies(await getTopKByRatingHeap(10))}>
               Top 10 (Heap)
             </button>
 
-            {/* History dropdown trigger */}
+            {/* History dropdown */}
             <span style={{ position: "relative", display: "inline-block" }}>
               <button onClick={handleShowHistoryDropdown}>
                 {historyOpen ? "Hide History" : "Show Watch History"}
@@ -157,35 +153,24 @@ export default function App() {
             <button onClick={handleRecs}>Recommend for You</button>
             <button onClick={handleRecsDiverse}>Recommend (Diverse)</button>
 
-            {/* Add Movie button */}
-            <button
-              onClick={() => {
-                setAdding(true);
-                requestAnimationFrame(() => {
-                  const anchor = document.getElementById("add-movie");
-                  anchor && anchor.scrollIntoView({ behavior: "smooth", block: "start" });
-                });
-              }}
-            >
-              ➕ Add Movie
-            </button>
+            <button onClick={() => setAdding(true)}>➕ Add Movie</button>
           </div>
         </div>
       </div>
 
-      {/* AddMovie panel */}
-      <div id="add-movie" />
+      {/* AddMovie modal */}
       {adding && (
-        <AddMovie
-          onAdded={() => {
-            setAdding(false);
-            loadMovies();
-            document.querySelector(".movie-grid")?.scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
-          }}
-        />
+        <div className="modal-backdrop" onClick={() => setAdding(false)}>
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setAdding(false)}>✕</button>
+            <AddMovie
+              onAdded={() => {
+                setAdding(false);
+                loadMovies();
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {/* Cards grid */}
@@ -205,7 +190,6 @@ export default function App() {
               <p className="tags">Tags: {m.tags.join(", ")}</p>
             )}
 
-            {/* Watch -> push to history */}
             <button
               type="button"
               className="watch-btn"
@@ -226,7 +210,7 @@ export default function App() {
         ))}
       </div>
 
-      {/* Recommendations panel */}
+      {/* Recommendations */}
       {recsOpen && (
         <div className="recs-panel" style={{ marginTop: 16 }}>
           <h2>Recommended for You</h2>
