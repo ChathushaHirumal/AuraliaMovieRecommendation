@@ -44,8 +44,8 @@ html,body{height:100%; margin:0; background:var(--bg); color:var(--text);}
 .controls input::placeholder{color:#d0d0d0;}
 .controls input:focus{
   background:rgba(255,255,255,0.25);
-  border-color:#e63946;                  
-  box-shadow:0 0 0 3px rgba(230,57,70,0.3); 
+  border-color:#8ab4f8;
+  box-shadow:0 0 0 3px rgba(138,180,248,0.2);
 }
 
 .controls button{
@@ -60,7 +60,7 @@ html,body{height:100%; margin:0; background:var(--bg); color:var(--text);}
 }
 .controls button:hover{
   background:rgba(255,255,255,0.15);
-  border-color:#e63946;                 
+  border-color:#8ab4f8;                
   color:#ffdddd;                        
 }
 
