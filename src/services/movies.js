@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, where, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 const moviesCol = collection(db, "movies2");
@@ -90,7 +90,7 @@ export function pushHistory(item, max = 20) {
 // Read recent history (move-to-front stack/queue), newest first
 export function getHistory(limit = 20) {
   try {
-  const raw = localStorage.getItem(HISTORY_KEY);
+    const raw = localStorage.getItem(HISTORY_KEY);
 
     const arr = raw ? JSON.parse(raw) : [];
     return arr.slice(0, limit).map(x => (x.title ? x.title : x));
@@ -103,7 +103,7 @@ export function getHistory(limit = 20) {
 // Clear history
 export function clearHistory() {
   try {
-localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(HISTORY_KEY);
 
   } catch { /* ignore */ }
 }
@@ -146,10 +146,10 @@ export async function getRecommendations(k = 10, histLimit = 5, allMovies = null
     .map(t => byTitle.get(String(t).toLowerCase()))
     .filter(Boolean)
     .map(m => ({
-    title: m.title,
-    genre: toArr(m.genre),
-    tags: toArr(m.tags)
-  }));
+      title: m.title,
+      genre: toArr(m.genre),
+      tags: toArr(m.tags)
+    }));
 
 
   // Score each candidate against all seeds
@@ -161,7 +161,7 @@ export async function getRecommendations(k = 10, histLimit = 5, allMovies = null
     let bestWhy = { seed: null, gSim: 0, tSim: 0 };
     let score = 0;
     for (const s of seeds) {
-        const gSim = jaccard(toArr(cand.genre), toArr(s.genre));
+      const gSim = jaccard(toArr(cand.genre), toArr(s.genre));
       const tSim = jaccard(toArr(cand.tags), toArr(s.tags));
 
       // weights: genres 0.6, tags 0.4 (tweakable)
@@ -176,7 +176,7 @@ export async function getRecommendations(k = 10, histLimit = 5, allMovies = null
     scored.push({
       ...cand,
       _score: score / seeds.length + ratingBonus,
-      _why: [`Because you watched "${bestWhy.seed}" (genre match ${(bestWhy.gSim*100).toFixed(0)}%, tag match ${(bestWhy.tSim*100).toFixed(0)}%)`]
+      _why: [`Because you watched "${bestWhy.seed}" (genre match ${(bestWhy.gSim * 100).toFixed(0)}%, tag match ${(bestWhy.tSim * 100).toFixed(0)}%)`]
     });
   }
 
@@ -208,9 +208,39 @@ export function diversifyByGenre(items, maxPerGenre = 2) {
   return out;
 }
 
-// Convenience: get diversified recommendations
-export async function getRecommendationsDiverse(k = 10, maxPerGenre = 2) {
-  const base = await getRecommendations(k * 3); // extra to allow diversity
+// AFTER
+export async function getRecommendationsDiverse(k = 10, maxPerGenre = 2, allMovies = null) {
+  const base = await getRecommendations(k * 3, 5, allMovies); // reuse loaded movies
   const diversified = diversifyByGenre(base, maxPerGenre);
   return diversified.slice(0, k);
+}
+
+
+
+
+
+// Create: add a movie document to Firestore
+export async function addMovie(data) {
+  const doc = {
+    title: data.title?.trim(),
+    year: data.year ? Number(data.year) : null,
+    rating: data.rating ? Number(data.rating) : 0,
+    // allow comma-separated or arrays
+    genre: Array.isArray(data.genre)
+      ? data.genre
+      : String(data.genre || "")
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean),
+    tags: Array.isArray(data.tags)
+      ? data.tags
+      : String(data.tags || "")
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean),
+    createdAt: serverTimestamp(),
+  };
+  if (!doc.title) throw new Error("Title is required");
+  await addDoc(moviesCol, doc);
+  return true;
 }

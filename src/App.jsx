@@ -14,12 +14,20 @@ import {
   getRecommendations,
   getRecommendationsDiverse
 } from "./services/movies";
+import AddMovie from "./pages/AddMovie/AddMovie.jsx";
+
 
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [sort, setSort] = useState("rating");
   const [genre, setGenre] = useState("");
   const [search, setSearch] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [recent, setRecent] = useState([]);
+  const [recs, setRecs] = useState([]);
+  const [recsOpen, setRecsOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+
 
   // extra state from 1st code
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -46,12 +54,12 @@ export default function App() {
   }
 
   function handleShowHistoryDropdown() {
-    // refresh every open
+    // load every time we open (keeps list fresh)
+
     const list = getHistory(5);
     setRecent(list);
     setHistoryOpen((v) => !v);
   }
-
   function handleClearHistory() {
     clearHistory();
     setRecent([]);
@@ -66,6 +74,10 @@ export default function App() {
 
   async function handleRecsDiverse() {
     const r = await getRecommendationsDiverse(10, 2, movies);
+    setRecs(r);
+    setRecsOpen(true);
+  }
+
     setRecs(r);
     setRecsOpen(true);
   }
@@ -177,48 +189,50 @@ export default function App() {
               <p className="tags">Tags: {m.tags.join(", ")}</p>
             )}
 
-            {/* Watch -> push to history (same as 1st code) */}
-            <button
-              className="watch-btn"
-              onClick={() => pushHistory({ id: m.id, title: m.title })}
-              style={{
-                margin: "4px",
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.16)",
-                background: "rgba(255,255,255,0.08)",
-                color: "#f1f1f1",
-                cursor: "pointer"
-              }}
-            >
-              Watch
-            </button>
-          </div>
-        ))}
-      </div>
+{/* Watch -> push to history (same as 1st code) */}
+<button
+  type="button"
+  className="watch-btn"
+  onClick={() => pushHistory({ id: m.id, title: m.title })}
+  style={{
+    margin: "4px",
+    padding: "8px 10px",
+    borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(255,255,255,0.08)",
+    color: "#f1f1f1",
+    cursor: "pointer"
+  }}
+>
+  Watch
+</button>
+</div>
+))}
+</div>
 
-      {/* Recommendations panel (from 1st code) */}
-      {recsOpen && (
-        <div className="recs-panel" style={{ marginTop: 16 }}>
-          <h2>Recommended for You</h2>
-          {recs.length === 0 ? (
-            <p>No recommendations yet. Watch a few titles first.</p>
-          ) : (
-            <ul>
-              {recs.map((m) => (
-                <li key={m.id || m.title}>
-                  <b>{m.title}</b> — ⭐ {m.rating} {m.year ? `| ${m.year}` : ""}
-                  {Array.isArray(m._why) && m._why.length > 0 && (
-                    <div style={{ opacity: 0.85 }}>
-                      <small>{m._why[0]}</small>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
+{/* Recommendations panel (from 1st code) */}
+{recsOpen && (
+  <div className="recs-panel" style={{ marginTop: 16 }}>
+    <h2>Recommended for You</h2>
+    {recs.length === 0 ? (
+      <p>No recommendations yet. Watch a few titles first.</p>
+    ) : (
+      <ul>
+        {recs.map((m) => (
+          <li key={m.id || m.title}>
+            <b>{m.title}</b> — ⭐ {m.rating} {m.year ? `| ${m.year}` : ""}
+            {Array.isArray(m._why) && m._why.length > 0 && (
+              <div style={{ opacity: 0.85 }}>
+                <small>{m._why[0]}</small>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+)}
+</div>
+
   );
 }
