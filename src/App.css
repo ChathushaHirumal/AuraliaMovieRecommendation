@@ -115,3 +115,6 @@ html,body{height:100%; margin:0; background:var(--bg); color:var(--text);}
   margin:0 4px 2px;
   font-size:.7rem; color:var(--muted-2);
 }
+
+
+#add-movie { scroll-margin-top: 90px; }  /* keep the AddMovie panel below the sticky toolbar */

@@ -16,24 +16,18 @@ import {
 } from "./services/movies";
 import AddMovie from "./pages/AddMovie/AddMovie.jsx";
 
-
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [sort, setSort] = useState("rating");
   const [genre, setGenre] = useState("");
   const [search, setSearch] = useState("");
+
+  // extra state
   const [historyOpen, setHistoryOpen] = useState(false);
   const [recent, setRecent] = useState([]);
   const [recs, setRecs] = useState([]);
   const [recsOpen, setRecsOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
-
-
-  // extra state from 1st code
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [recent, setRecent] = useState([]);
-  const [recs, setRecs] = useState([]);
-  const [recsOpen, setRecsOpen] = useState(false);
+  const [adding, setAdding] = useState(false); // <-- for Add Movie
 
   useEffect(() => {
     loadMovies();
@@ -54,12 +48,11 @@ export default function App() {
   }
 
   function handleShowHistoryDropdown() {
-    // load every time we open (keeps list fresh)
-
     const list = getHistory(5);
     setRecent(list);
     setHistoryOpen((v) => !v);
   }
+
   function handleClearHistory() {
     clearHistory();
     setRecent([]);
@@ -78,16 +71,11 @@ export default function App() {
     setRecsOpen(true);
   }
 
-    setRecs(r);
-    setRecsOpen(true);
-  }
-
-  // Use binary prefix search when there is a query (from 1st code)
   const filtered = search ? getByTitlePrefixBinary(movies, search) : movies;
 
   return (
     <div className="app">
-      {/* Sticky toolbar (from 2nd code) */}
+      {/* Sticky toolbar */}
       <div className="toolbar">
         <div className="toolbar-inner">
           <h1>🎬 Movie Explorer</h1>
@@ -99,14 +87,14 @@ export default function App() {
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            {/* Sort / Filter (from 2nd code) */}
+            {/* Sort / Filter */}
             <button onClick={() => handleSort("rating")}>Sort by Rating</button>
             <button onClick={() => handleSort("year")}>Sort by Year</button>
             <button onClick={() => handleFilter("Action")}>Filter: Action</button>
             <button onClick={() => handleFilter("Drama")}>Filter: Drama</button>
             <button onClick={loadMovies}>Reset</button>
 
-            {/* Extra actions (from 1st code) */}
+            {/* Extra actions */}
             <button onClick={async () => setMovies(await getTopKByRatingHeap(10))}>
               Top 10 (Heap)
             </button>
@@ -168,11 +156,39 @@ export default function App() {
             <button onClick={handleClearHistory}>Clear History</button>
             <button onClick={handleRecs}>Recommend for You</button>
             <button onClick={handleRecsDiverse}>Recommend (Diverse)</button>
+
+            {/* Add Movie button */}
+            <button
+              onClick={() => {
+                setAdding(true);
+                requestAnimationFrame(() => {
+                  const anchor = document.getElementById("add-movie");
+                  anchor && anchor.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              }}
+            >
+              ➕ Add Movie
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Cards grid (keeps your current square-card design) */}
+      {/* AddMovie panel */}
+      <div id="add-movie" />
+      {adding && (
+        <AddMovie
+          onAdded={() => {
+            setAdding(false);
+            loadMovies();
+            document.querySelector(".movie-grid")?.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+          }}
+        />
+      )}
+
+      {/* Cards grid */}
       <div className="movie-grid">
         {filtered.map((m) => (
           <div className="movie-card" id={`movie-${m.id}`} key={m.id}>
@@ -189,50 +205,49 @@ export default function App() {
               <p className="tags">Tags: {m.tags.join(", ")}</p>
             )}
 
-{/* Watch -> push to history (same as 1st code) */}
-<button
-  type="button"
-  className="watch-btn"
-  onClick={() => pushHistory({ id: m.id, title: m.title })}
-  style={{
-    margin: "4px",
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.08)",
-    color: "#f1f1f1",
-    cursor: "pointer"
-  }}
->
-  Watch
-</button>
-</div>
-))}
-</div>
-
-{/* Recommendations panel (from 1st code) */}
-{recsOpen && (
-  <div className="recs-panel" style={{ marginTop: 16 }}>
-    <h2>Recommended for You</h2>
-    {recs.length === 0 ? (
-      <p>No recommendations yet. Watch a few titles first.</p>
-    ) : (
-      <ul>
-        {recs.map((m) => (
-          <li key={m.id || m.title}>
-            <b>{m.title}</b> — ⭐ {m.rating} {m.year ? `| ${m.year}` : ""}
-            {Array.isArray(m._why) && m._why.length > 0 && (
-              <div style={{ opacity: 0.85 }}>
-                <small>{m._why[0]}</small>
-              </div>
-            )}
-          </li>
+            {/* Watch -> push to history */}
+            <button
+              type="button"
+              className="watch-btn"
+              onClick={() => pushHistory({ id: m.id, title: m.title })}
+              style={{
+                margin: "4px",
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(255,255,255,0.08)",
+                color: "#f1f1f1",
+                cursor: "pointer"
+              }}
+            >
+              Watch
+            </button>
+          </div>
         ))}
-      </ul>
-    )}
-  </div>
-)}
-</div>
+      </div>
 
+      {/* Recommendations panel */}
+      {recsOpen && (
+        <div className="recs-panel" style={{ marginTop: 16 }}>
+          <h2>Recommended for You</h2>
+          {recs.length === 0 ? (
+            <p>No recommendations yet. Watch a few titles first.</p>
+          ) : (
+            <ul>
+              {recs.map((m) => (
+                <li key={m.id || m.title}>
+                  <b>{m.title}</b> — ⭐ {m.rating} {m.year ? `| ${m.year}` : ""}
+                  {Array.isArray(m._why) && m._why.length > 0 && (
+                    <div style={{ opacity: 0.85 }}>
+                      <small>{m._why[0]}</small>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
