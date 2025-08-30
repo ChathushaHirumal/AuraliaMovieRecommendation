@@ -1,82 +1,117 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* ==== Global (dark look) =============================================== */
+:root{
+  --bg:#121212; --text:#e0e0e0; --muted:#bdbdbd; --muted-2:#9aa0a6;
+  --card-radius:14px; --poster-radius:14px;
 }
 
-.movie-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-  width: 100%;
+html,body{height:100%; margin:0; background:var(--bg); color:var(--text);}
+
+.app{
+  max-width:1280px;
+  margin:0 auto;
+  padding:0 20px 20px;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 
-.movie-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+/* ==== Sticky toolbar (modern glass look) =============================== */
+.toolbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(18,18,18,0.85);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:12px 0;
+  margin:0 -20px;
 }
-.movie-card:hover {
-  transform: translateY(-5px);
+.toolbar-inner{
+  max-width:1280px; margin:0 auto; padding:0 20px;
+  display:flex; gap:12px; flex-wrap:wrap; align-items:center;
 }
-.movie-card img {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+.toolbar h1{font-size:1.1rem; margin:0; font-weight:700;}
+
+/* ==== Controls: translucent search + sleek buttons ===================== */
+.controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+
+.controls input{
+  background:rgba(255,255,255,0.15);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.22);
+  border-radius:12px;
+  padding:10px 14px;
+  outline:none; min-width:260px;
+  font-size:.9rem;
+  transition:all .2s ease;
 }
-.movie-card h3 {
-  font-size: 1.1rem;
-  margin: 0.5rem 0;
-}
-.movie-card p {
-  margin: 0.2rem 0;
-  font-size: 0.9rem;
-}
-.movie-card .genres {
-  color: #555;
-  font-size: 0.8rem;
+.controls input::placeholder{color:#d0d0d0;}
+.controls input:focus{
+  background:rgba(255,255,255,0.25);
+  border-color:#8ab4f8;
+  box-shadow:0 0 0 3px rgba(138,180,248,0.2);
 }
 
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.controls button{
+  background:rgba(255,255,255,0.08);
+  color:#f1f1f1;
+  border:1px solid rgba(255,255,255,0.16);
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:.85rem;
+  cursor:pointer;
+  transition:all .2s ease;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.controls button:hover{
+  background:rgba(255,255,255,0.15);
+  border-color:#8ab4f8;                
+  color:#ffdddd;                        
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* ==== Grid: smaller squares ============================================ */
+.movie-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  gap:16px;
+  margin-top:16px;
+  justify-content:center;
+  width:100%;
 }
 
-.card {
-  padding: 2em;
+/* ==== Card (smaller perfect squares) =================================== */
+.movie-card{
+  background:transparent;
+  border-radius:var(--card-radius);
+  padding:6px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  transition:transform .18s ease;
+  aspect-ratio: 1 / 1;
+  max-width:220px;
+  margin:0 auto;
+}
+.movie-card:hover{transform:translateY(-3px);}
+
+/* Poster fills top portion */
+.movie-card img{
+  width:100%;
+  height:60%;
+  object-fit:cover;
+  border-radius:var(--poster-radius);
+  margin-bottom:6px;
+  flex-shrink:0;
 }
 
-.read-the-docs {
-  color: #888;
+/* ==== Text ============================================================= */
+.movie-card h3{
+  font-size:.85rem;
+  margin:2px 4px;
+  font-weight:600; color:#eaeaea;
+  overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.movie-card p{
+  margin:2px 4px;
+  font-size:.72rem; color:var(--muted);
+}
+.movie-card .genres{
+  margin:0 4px 2px;
+  font-size:.7rem; color:var(--muted-2);
 }
