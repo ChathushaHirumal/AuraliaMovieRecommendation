@@ -60,7 +60,7 @@ html,body{height:100%; margin:0; background:var(--bg); color:var(--text);}
 }
 .controls button:hover{
   background:rgba(255,255,255,0.15);
-  border-color:#8ab4f8;                
+  border-color:#e63946;                
   color:#ffdddd;                        
 }
 
