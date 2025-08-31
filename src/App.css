@@ -1,4 +1,4 @@
-/* ==== Global (dark look) =============================================== */
+/* ==== App-scoped styles (no header/grid here) ========================== */
 :root {
   --bg: #121212;
   --text: #e0e0e0;
@@ -8,157 +8,11 @@
   --poster-radius: 14px;
 }
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-}
-
 .app {
-  aspect-ratio: auto;
-  max-width: none;
-  margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* ==== Sticky toolbar (modern glass look) =============================== */
-.toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(18, 18, 18, 0.85);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 12px 0;
-  margin: 0 -20px;
-}
-
-.toolbar-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.toolbar h1 {
-  font-size: 1.1rem;
-  margin: 0;
-  font-weight: 700;
-}
-
-/* ==== Controls: translucent search + sleek buttons ===================== */
-.controls {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.controls input {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 12px;
-  padding: 10px 14px;
-  outline: none;
-  min-width: 260px;
-  font-size: .9rem;
-  transition: all .2s ease;
-}
-
-.controls input::placeholder {
-  color: #d0d0d0;
-}
-
-.controls input:focus {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: #8ab4f8;
-  box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.2);
-}
-
-.controls button {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f1f1;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: .85rem;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-
-.controls button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: #e63946;
-  color: #ffdddd;
-}
-
-/* ==== Grid: smaller squares ============================================ */
-.movie-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  /* always 5 per row */
-  justify-content: space-between;
-  /* adds spacing between items */
-  gap: 16px;
-  margin-top: 16px;
-  width: 100%;
-}
-
-
-.movie-card p {
-  margin: 4px 6px;
-  font-size: .9rem;
-  /* bigger info text */
-  color: var(--muted);
-
-
-}
-
-.movie-card:hover {
-  transform: translateY(-3px);
-}
-
-.movie-card img {
-  width: 100%;
-  height: 250px;
-  /* taller poster */
-  object-fit: cover;
-  border-radius: var(--poster-radius);
-  margin-bottom: 10px;
-}
-
-/* ==== Text ============================================================= */
-.movie-card h3 {
-  font-size: 1.1rem;
-  /* bigger title */
-  margin: 4px 6px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.movie-card p {
-  margin: 2px 4px;
-  font-size: .72rem;
-  color: var(--muted);
-}
-
-.movie-card .genres {
-  margin: 0 6px 4px;
-  font-size: .85rem;
-  /* bigger genres */
-  color: var(--muted-2);
-}
-
-
-
-
-/* === Modal for AddMovie === */
+/* === AddMovie / Recs modals =========================================== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -167,17 +21,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  /* above sticky header */
+  z-index: 1000; /* above sticky header */
 }
 
-.modal-sheet{
+.modal-sheet {
   width: min(720px, 92vw);
   max-height: 90vh;
   overflow: auto;
- background: rgba(18, 18, 18, 0.85);
+  background: rgba(18, 18, 18, 0.85);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,.45);
@@ -195,31 +48,27 @@ body {
   padding: 6px 10px;
   cursor: pointer;
 }
+.modal-close:hover { background: rgba(255, 255, 255, 0.15); }
 
-.modal-close:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
+/* Button on cards */
 .watch-btn {
   padding: 12px 14px !important;
   font-size: .95rem !important;
 }
 
-/* === Recs modal sizing & list === */
-.recs-sheet{
-  width: min(880px, 95vw);     /* wider than AddMovie for readability */
-}
-.recs-list{
+/* === Recs modal sizing & list ========================================= */
+.recs-sheet { width: min(880px, 95vw); }
+.recs-list {
   list-style: none;
   margin: 8px 0 0;
   padding: 0;
-  max-height: 60vh;            /* scroll inside the panel if long */
+  max-height: 60vh;
   overflow: auto;
 }
-.recs-list li{
+.recs-list li {
   padding: 10px 6px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.recs-list li:last-child{ border-bottom: none; }
-.recs-title{ margin-bottom: 4px; }
-.recs-sub, .recs-why{ opacity: .9; }
+.recs-list li:last-child { border-bottom: none; }
+.recs-title { margin-bottom: 4px; }
+.recs-sub, .recs-why { opacity: .9; }

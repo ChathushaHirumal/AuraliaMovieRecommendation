@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import { Link } from "react-router-dom";
+import logo from "./assets/Auralia-logo.png";
 
 import {
   getAllMovies,
@@ -58,9 +60,13 @@ export default function App() {
       {/* ===== Toolbar ===== */}
       <div className="toolbar">
         <div className="toolbar-inner">
-          {/* Top row: title left */}
+          {/* Top row: brand + auth */}
           <div className="toolbar-top">
-            <h1>🎬 Movie Explorer</h1>
+            <div className="brand">
+              <img src={logo} alt="Auralia" className="logo" />
+              <h1>🎬 Movie Explorer</h1>
+            </div>
+            <Link to="/auth" className="loginBtn">Sign In</Link>
           </div>
 
           {/* Middle row: big centered search */}
@@ -166,7 +172,6 @@ export default function App() {
       </div>
 
       {/* Recommendations modal */}
-
       {recsOpen && (
         <div className="modal-backdrop" onClick={() => setRecsOpen(false)}>
           <div className="modal-sheet recs-sheet" onClick={(e) => e.stopPropagation()}>
@@ -179,36 +184,34 @@ export default function App() {
               <ul className="recs-list">
                 {recs.map(m => (
                   <li key={m.id || m.title}>
-                   
-                      <div className="recs-title">
-  <button
-    onClick={()=>{
-      const el = document.getElementById(`movie-${m.id}`);
-      if(el){
-        el.scrollIntoView({behavior:"smooth", block:"center"});
-        el.style.outline = "2px solid #e63946";
-        setTimeout(()=>{ el.style.outline=""; }, 2000); // highlight for 2s
-      }
-      setRecsOpen(false);
-    }}
-    style={{
-      background:"none",
-      border:"none",
-      padding:0,
-      margin:0,
-      cursor:"pointer",
-      color:"inherit", 
-      fontSize:"1rem",
-      fontWeight:"600",
-      textDecoration:"none"      
-    }}
-  >
-    {m.title}
-  </button>
-  &nbsp;— ⭐ {m.rating ?? "—"} {m.year ? `| ${m.year}` : ""}
-</div>
+                    <div className="recs-title">
+                      <button
+                        onClick={() => {
+                          const el = document.getElementById(`movie-${m.id}`);
+                          if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "center" });
+                            el.style.outline = "2px solid #e63946";
+                            setTimeout(() => { el.style.outline = ""; }, 2000);
+                          }
+                          setRecsOpen(false);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          margin: 0,
+                          cursor: "pointer",
+                          color: "inherit",
+                          fontSize: "1rem",
+                          fontWeight: "600",
+                          textDecoration: "none"
+                        }}
+                      >
+                        {m.title}
+                      </button>
+                      &nbsp;— ⭐ {m.rating ?? "—"} {m.year ? `| ${m.year}` : ""}
+                    </div>
 
-                    
                     {Array.isArray(m.genre) && m.genre.length > 0 && (
                       <div className="recs-sub"><small>Genres: {m.genre.join(", ")}</small></div>
                     )}
