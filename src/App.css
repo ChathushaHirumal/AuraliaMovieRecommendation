@@ -21,7 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000; /* above sticky header */
+  z-index: 1000;
+  /* above sticky header */
 }
 
 .modal-sheet {
@@ -33,7 +34,7 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
   position: relative;
 }
 
@@ -48,16 +49,50 @@
   padding: 6px 10px;
   cursor: pointer;
 }
-.modal-close:hover { background: rgba(255, 255, 255, 0.15); }
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
 
 /* Button on cards */
 .watch-btn {
   padding: 12px 14px !important;
   font-size: .95rem !important;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f1f1;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.watch-btn:active {
+  animation: clickPulse 0.2s ease forwards;
+}
+
+@keyframes clickPulse {
+  0% {
+    transform: scale(1);
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  50% {
+    transform: scale(0.92);
+    background: rgba(255, 255, 255, 0.20);
+  }
+
+  100% {
+    transform: scale(1);
+    background: rgba(255, 255, 255, 0.12);
+  }
 }
 
 /* === Recs modal sizing & list ========================================= */
-.recs-sheet { width: min(880px, 95vw); }
+.recs-sheet {
+  width: min(880px, 95vw);
+}
+
 .recs-list {
   list-style: none;
   margin: 8px 0 0;
@@ -65,10 +100,88 @@
   max-height: 60vh;
   overflow: auto;
 }
+
 .recs-list li {
   padding: 10px 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-.recs-list li:last-child { border-bottom: none; }
-.recs-title { margin-bottom: 4px; }
-.recs-sub, .recs-why { opacity: .9; }
+
+.recs-list li:last-child {
+  border-bottom: none;
+}
+
+.recs-title {
+  margin-bottom: 4px;
+}
+
+.recs-sub,
+.recs-why {
+  opacity: .9;
+}
+
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+}
+
+.toolbar .brand h1 {
+  margin-top: -8px;
+  flex: 1;
+  text-align: center;
+  font-size: 2rem !important;
+  /* force size */
+  font-weight: 700 !important;
+  /* force bold */
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+/* Logo controls */
+.toolbar .brand .logo {
+  margin-left: -100px;
+  width: 100px !important;
+  /* change px as needed */
+  height: auto !important;
+  display: block;
+}
+
+
+/* Move brand left / right / center */
+.brand.left {
+  justify-content: flex-start;
+}
+
+.brand.right {
+  justify-content: flex-end;
+}
+
+.brand.center {
+  justify-content: center;
+}
+
+/* Sign In button */
+.loginBtn {
+  background: #1abc9c;
+  color: #000;
+  font-weight: 600;
+  font-size: 0.85rem;
+  /* smaller text */
+  padding: 6px 14px;
+  /* smaller padding */
+  border-radius: 8px;
+  text-decoration: none;
+  position: absolute;
+  /* force it to the right */
+  right: 40px;
+  /* adjust how far from right edge */
+  top: 20px;
+  /* adjust vertical position */
+}
+
+.loginBtn:hover {
+  background: #22af93;
+}
