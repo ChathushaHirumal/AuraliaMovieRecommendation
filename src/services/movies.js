@@ -1,5 +1,11 @@
-import { collection, getDocs, query, orderBy, where, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection, getDocs, query, orderBy, where,
+  serverTimestamp, doc, setDoc
+} from "firebase/firestore";
+
+// (add this line under your firebase imports)
 import { db } from "../lib/firebase";
+
 
 const moviesCol = collection(db, "movies2");
 
@@ -132,16 +138,16 @@ function indexByTitle(movies) {
 
 // Recommend from recent history with explainable reasons.
 // Scoring = w1*Jaccard(genre) + w2*Jaccard(tags) + small rating bonus
+// AFTER (hardened & always-explain)
 export async function getRecommendations(k = 10, histLimit = 5, allMovies = null) {
   const all = allMovies || await getAllMovies();
   const recent = getHistory(histLimit);
-
   if (!recent || recent.length === 0) return [];
 
   const byTitle = indexByTitle(all);
   const watchedSet = new Set(recent.map(t => String(t).toLowerCase()));
 
-  // Collect "seed" feature sets from watched items
+  // collect valid seed movies only
   const seeds = recent
     .map(t => byTitle.get(String(t).toLowerCase()))
     .filter(Boolean)
@@ -150,65 +156,70 @@ export async function getRecommendations(k = 10, histLimit = 5, allMovies = null
       genre: toArr(m.genre),
       tags: toArr(m.tags)
     }));
+  if (seeds.length === 0) return []; // nothing to compare with
 
-
-  // Score each candidate against all seeds
   const scored = [];
   for (const cand of all) {
     const key = String(cand.title).toLowerCase();
-    if (watchedSet.has(key)) continue; // don't recommend watched
+    if (watchedSet.has(key)) continue;
 
-    let bestWhy = { seed: null, gSim: 0, tSim: 0 };
-    let score = 0;
+    const cGenres = toArr(cand.genre);
+    const cTags = toArr(cand.tags);
+
+    let bestSeed = null, bestG = 0, bestT = 0, sum = 0;
     for (const s of seeds) {
-      const gSim = jaccard(toArr(cand.genre), toArr(s.genre));
-      const tSim = jaccard(toArr(cand.tags), toArr(s.tags));
-
-      // weights: genres 0.6, tags 0.4 (tweakable)
-      const partial = 0.6 * gSim + 0.4 * tSim;
-      if (partial > (0.6 * bestWhy.gSim + 0.4 * bestWhy.tSim)) {
-        bestWhy = { seed: s.title, gSim, tSim };
-      }
-      score += partial;
+      const g = jaccard(cGenres, s.genre);
+      const t = jaccard(cTags, s.tags);
+      const p = 0.6 * g + 0.4 * t;
+      if (p > (0.6 * bestG + 0.4 * bestT)) { bestSeed = s.title; bestG = g; bestT = t; }
+      sum += p;
     }
-    // bonus for rating to break ties (normalized 0..1 if rating 0..10)
-    const ratingBonus = Math.min(Math.max((cand.rating ?? 0) / 10, 0), 1) * 0.1;
-    scored.push({
-      ...cand,
-      _score: score / seeds.length + ratingBonus,
-      _why: [`Because you watched "${bestWhy.seed}" (genre match ${(bestWhy.gSim * 100).toFixed(0)}%, tag match ${(bestWhy.tSim * 100).toFixed(0)}%)`]
-    });
+
+    const rating = Number.isFinite(cand.rating) ? cand.rating : 0;
+    const ratingBonus = Math.max(0, Math.min(1, rating / 10)) * 0.1;
+
+    const avg = sum / seeds.length;
+    const reason =
+      bestSeed
+        ? `Because you watched "${bestSeed}" (genre ${(bestG * 100).toFixed(0)}%, tags ${(bestT * 100).toFixed(0)}%)`
+        : "Because it’s similar to your recent watches.";
+
+    scored.push({ ...cand, _score: avg + ratingBonus, _why: [reason] });
   }
 
-  // Sort by score desc and take top k
   scored.sort((a, b) => b._score - a._score);
   return scored.slice(0, k);
 }
 
+
 // Simple diversity re-rank by limiting max items per genre bucket.
 // Greedy pass over a scored list.
+
 export function diversifyByGenre(items, maxPerGenre = 2) {
   const out = [];
+  const taken = new Set();
   const count = new Map();
+
+  // 1) strict pass: respect caps
   for (const m of items) {
     const genres = Array.isArray(m.genre) ? m.genre : [];
-    // if movie has multiple genres, check the worst-case bucket
-    const canPlace = genres.every(g => (count.get(g) || 0) < maxPerGenre);
-    if (canPlace) {
-      out.push(m);
+    if (genres.length === 0) continue; // postpone unknowns
+    const ok = genres.every(g => (count.get(g) || 0) < maxPerGenre);
+    if (ok) {
+      out.push(m); taken.add(m);
       for (const g of genres) count.set(g, (count.get(g) || 0) + 1);
     }
   }
-  // if we cut too many, fill with leftovers (still diverse first)
-  if (out.length < items.length) {
-    for (const m of items) {
-      if (!out.includes(m)) out.push(m);
-    }
+
+  // 2) fill remaining spots with leftovers (including no-genre items), keep ranking
+  for (const m of items) {
+    if (!taken.has(m)) out.push(m);
   }
   return out;
 }
 
-// AFTER
+
+
 export async function getRecommendationsDiverse(k = 10, maxPerGenre = 2, allMovies = null) {
   const base = await getRecommendations(k * 3, 5, allMovies); // reuse loaded movies
   const diversified = diversifyByGenre(base, maxPerGenre);
@@ -220,27 +231,35 @@ export async function getRecommendationsDiverse(k = 10, maxPerGenre = 2, allMovi
 
 
 // Create: add a movie document to Firestore
+
+// generate a slug if custom id isn't provided
+function slugify(title = "", year) {
+  const base = String(title).toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return year ? `${base}-${year}` : (base || `movie-${Date.now()}`);
+}
+
 export async function addMovie(data) {
-  const doc = {
+  const payload = {
     title: data.title?.trim(),
     year: data.year ? Number(data.year) : null,
-    rating: data.rating ? Number(data.rating) : 0,
-    // allow comma-separated or arrays
+    rating: data.rating ? Math.max(0, Math.min(10, Number(data.rating))) : 0,
     genre: Array.isArray(data.genre)
       ? data.genre
-      : String(data.genre || "")
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean),
+      : String(data.genre || "").split(",").map(s => s.trim()).filter(Boolean),
     tags: Array.isArray(data.tags)
       ? data.tags
-      : String(data.tags || "")
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean),
+      : String(data.tags || "").split(",").map(s => s.trim()).filter(Boolean),
+    posterUrl: data.posterUrl?.trim() || "",
+    language:  data.language?.trim() || "Unknown",
     createdAt: serverTimestamp(),
   };
-  if (!doc.title) throw new Error("Title is required");
-  await addDoc(moviesCol, doc);
+  if (!payload.title) throw new Error("Title is required");
+
+  const customId = (data.id?.trim()) || slugify(payload.title, payload.year);
+  const ref = doc(moviesCol, customId);
+  await setDoc(ref, { ...payload, id: customId });
+
   return true;
 }
